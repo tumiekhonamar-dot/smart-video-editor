@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Video Transformer</title>
+<style>
+body{font-family:Arial,sans-serif;background:#101114;color:#fff;margin:0;padding:24px}
+.box{max-width:620px;margin:auto;background:#1b1d22;padding:24px;border-radius:18px}
+h1{margin-top:0}.note{font-size:14px;color:#bbb;line-height:1.6}
+input,button{width:100%;box-sizing:border-box;margin-top:14px;padding:14px;border-radius:10px;border:0}
+button{background:#fff;color:#111;font-weight:bold;cursor:pointer}
+#status{margin-top:18px;line-height:1.6}
+a{display:block;margin-top:16px;color:#8ec5ff}
+</style>
+</head>
+<body>
+<div class="box">
+<h1>🎬 Auto Video Transformer</h1>
+<p class="note">
+নিজের বা যেই ভিডিও edit করার অনুমতি আপনার আছে সেটি upload করুন।
+টুলটি স্বয়ংক্রিয়ভাবে ভিডিও process করবে। এটি copyright ownership পরিবর্তন
+করে না বা copyright detection bypass করার নিশ্চয়তা দেয় না।
+</p>
+
+<input id="video" type="file" accept="video/*">
+<button onclick="processVideo()">Automatic Process</button>
+<div id="status"></div>
+</div>
+
+<script>
+async function processVideo(){
+  const file = document.getElementById("video").files[0];
+  const status = document.getElementById("status");
+
+  if(!file){
+    status.textContent = "আগে একটি ভিডিও নির্বাচন করুন।";
+    return;
+  }
+
+  const form = new FormData();
+  form.append("video", file);
+
+  status.textContent = "⏳ ভিডিও প্রসেস হচ্ছে...";
+
+  try{
+    const r = await fetch("/process", {method:"POST", body:form});
+    const data = await r.json();
+
+    if(!r.ok) throw new Error(data.error || "Processing failed");
+
+    status.innerHTML =
+      "✅ " + data.message +
+      '<a href="' + data.file + '" download>⬇️ Processed Video Download</a>';
+  }catch(e){
+    status.textContent = "❌ " + e.message;
+  }
+}
+</script>
+</body>
+</html>

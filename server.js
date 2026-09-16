@@ -3,9 +3,12 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { execFile } = require("child_process");
+const cors = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use(cors());
 
 const uploads = path.join(__dirname, "uploads");
 const outputs = path.join(__dirname, "outputs");
@@ -31,14 +34,12 @@ function runFFmpeg(args) {
 }
 
 app.post("/process", upload.single("video"), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "ভিডিও পাওয়া যায়নি।" });
+  if (!req.file) return res.status(400).json({ error: "ভিডিও পাওয়া যায়নি।" });
 
   const input = req.file.path;
   const outputName = `processed-${Date.now()}.mp4`;
   const output = path.join(outputs, outputName);
 
-  // Automatic transformation for videos the user owns or is authorized to edit.
-  // This does NOT remove copyright or bypass platform detection.
   const vf = [
     "scale=1280:720:force_original_aspect_ratio=decrease",
     "pad=1280:720:(ow-iw)/2:(oh-ih)/2",
@@ -67,7 +68,7 @@ app.post("/process", upload.single("video"), async (req, res) => {
     });
   } catch (e) {
     fs.unlink(input, () => {});
-    res.status(500).json({ error: "ভিডিও প্রসেস করা যায়নি। Server-এ FFmpeg ইনস্টল আছে কি না দেখুন।" });
+    res.status(500).json({ error: "ভিডিও প্রসেস করা যায়নি। Server-এ FFmpeg ইনস্টল আছে কি না দেখুন।" });
   }
 });
 
